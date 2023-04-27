@@ -1,11 +1,7 @@
 pipeline {
     agent any
     
-    environment {
-        DOCKER_HUB_REPO = "shivammitra/flask-hello-world"
-        CONTAINER_NAME = "flask-hello-world"
-        DOCKERHUB_CREDENTIALS=credentials('dockerhub-credentials')
-    }
+    
     
     stages {
         /* We do not need a stage for checkout here since it is done by default when using "Pipeline script from SCM" option. */
