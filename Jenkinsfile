@@ -5,6 +5,7 @@ pipeline {
         stage('Build') {
             steps {
                 sh 'python--version'
+                sh 'install Python 3.10.5'
                 sh 'pip install -r requirements.txt'
             }
         }
