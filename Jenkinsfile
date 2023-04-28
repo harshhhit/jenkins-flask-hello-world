@@ -1,37 +1,30 @@
 pipeline {
     agent any
     
-    
-    
     stages {
-        /* We do not need a stage for checkout here since it is done by default when using "Pipeline script from SCM" option. */
-        
         stage('Build') {
             steps {
-                echo 'Building..'
-                sh 'docker image build -t $DOCKER_HUB_REPO:latest .'
+                sh 'pip install -r requirements.txt'
             }
         }
+        
         stage('Test') {
             steps {
-                echo 'Testing..'
-                sh 'docker stop $CONTAINER_NAME || true'
-                sh 'docker rm $CONTAINER_NAME || true'
-                sh 'docker run --name $CONTAINER_NAME $DOCKER_HUB_REPO /bin/bash -c "pytest test.py && flake8"'
+                sh 'python -m pytest tests/'
             }
         }
-        stage('Push') {
-            steps {
-                echo 'Pushing image..'
-                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-                sh 'docker push $DOCKER_HUB_REPO:latest'
-            }
-        }
+        
         stage('Deploy') {
+            environment {
+                SERVER = 'example.com'
+                USERNAME = credentials('ssh-username')
+                PASSWORD = credentials('ssh-password')
+            }
             steps {
-                echo 'Deploying....'
-                sh 'minikube kubectl -- apply -f deployment.yaml'
-                sh 'minikube kubectl -- apply -f service.yaml'
+                sshagent(['ssh-username']) {
+                    sh "sshpass -p ${PASSWORD} scp -r * ${USERNAME}@${SERVER}:/var/www/app"
+                    sh "sshpass -p ${PASSWORD} ssh ${USERNAME}@${SERVER} 'cd /var/www/app && sudo systemctl restart app'"
+                }
             }
         }
     }
