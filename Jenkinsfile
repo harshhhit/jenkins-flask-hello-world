@@ -4,8 +4,6 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                
-                sh 'install Python 3.10.5'
                 sh 'pip install -r requirements.txt'
             }
         }
@@ -16,18 +14,6 @@ pipeline {
             }
         }
         
-        stage('Deploy') {
-            environment {
-                SERVER = 'example.com'
-                USERNAME = credentials('ssh-username')
-                PASSWORD = credentials('ssh-password')
-            }
-            steps {
-                sshagent(['ssh-username']) {
-                    sh "sshpass -p ${PASSWORD} scp -r * ${USERNAME}@${SERVER}:/var/www/app"
-                    sh "sshpass -p ${PASSWORD} ssh ${USERNAME}@${SERVER} 'cd /var/www/app && sudo systemctl restart app'"
-                }
-            }
-        }
+        
     }
 }
